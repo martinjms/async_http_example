@@ -1,0 +1,10 @@
+http://speedtest.ftp.otenet.gr/files/test100Mb.dbbroken
+http://speedtest.ftp.otenet.grbroken/files/test100Mb.db
+http://speedtest.ftp.otenet.gr/files/test100Mb.db
+http://speedtest.ftp.otenet.gr/files/test100Mb.db
+http://speedtest.ftp.otenet.gr/files/test100Mb.db
+htbrokentp://speedtest.ftp.otenet.gr/files/test100Mb.db
+http://speedtest.ftp.otenet.gr/files/test100Mb.db
+http://speedtest.ftp.otenet.gr/files/test100Mb.db
+http://speedtest.ftp.otenet.gr/files/test100Mb.db
+http://speedtest.ftp.otenet.gr/files/test100Mb.db

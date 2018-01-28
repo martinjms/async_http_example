@@ -1,0 +1,6 @@
+files/
+server/public/
+.vscode/
+*.jpg
+*.db
+.DS_Store
