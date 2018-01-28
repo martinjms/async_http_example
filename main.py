@@ -1,7 +1,7 @@
-import sys
-import aiohttp
-import asyncio
-import time
+from sys import stderr
+from aiohttp import client_exceptions, ClientPayloadError, ClientResponseError, ClientSession
+from asyncio import Queue, TimeoutError, get_event_loop, gather
+from time import time
 from async_timeout import timeout
 
 async def write_file(content, filepath, chunk_size):
@@ -20,13 +20,13 @@ async def fetch(session, url, log, filepath, chunk_size = 100000, retry_count=0)
             await write_file(response.content, filepath, chunk_size)
             
                
-    except (aiohttp.client_exceptions.ClientConnectorError, aiohttp.ClientPayloadError, asyncio.TimeoutError) as e:
+    except (client_exceptions.ClientConnectorError, ClientPayloadError, TimeoutError) as e:
         if retry_count < 3:
             await fetch(session, url, log, filepath, chunk_size, retry_count + 1)
         else:
-            print(str(url) + '  FAILED!', file=sys.stderr)
-    except aiohttp.ClientResponseError as e:
-        print(str(url) + '  FAILED! - Error code:' + str(e.code), file=sys.stderr)
+            print(str(url) + '  FAILED!', file=stderr)
+    except ClientResponseError as e:
+        print(str(url) + '  FAILED! - Error code:' + str(e.code), file=stderr)
     except:
         print('Unknown error', file=sys.stderr)
 
@@ -38,27 +38,22 @@ async def reader(filepath):
         for worker in range(1, WORKERS_COUNT):
             await queue.put(None)
 
-# async def reader(filepath):
-#     return await loop.run_in_executor(None, read_file, filepath)
 
 async def worker(id, chunk_size):
     def log(st):
         if LOG_ENABLED:
             print('Worker ' + str(id) + ': ' + st)
     log('starting')
-    start_time = time.time()
+    start_time = time()
     url = await queue.get()
     while url:
         filename = str(url).split('/')[-1] + str(id)
-        if not filename:
-            filename = 'unnamed'
         filepath = 'files/' + filename
         log('fetching ' + str(url))
-        async with aiohttp.ClientSession() as session:
+        async with ClientSession() as session:
             content = await fetch(session, url, log, filepath, chunk_size, )
         url = await queue.get()
-    # await queue.put(None)
-    log('finished in ' + str(time.time() - start_time))
+    log('finished in ' + str(time() - start_time))
        
 if __name__ == "__main__":
     tasks = []
@@ -66,8 +61,8 @@ if __name__ == "__main__":
     CHUNK_SIZE = 100000
     QUEUE_SIZE = 200
     LOG_ENABLED = True
-    queue = asyncio.Queue(QUEUE_SIZE)
+    queue = Queue(QUEUE_SIZE)
     tasks.extend(map(lambda x: worker(x, CHUNK_SIZE), range(1,WORKERS_COUNT)))
     tasks.append(reader('test_file.txt'))
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(asyncio.gather(*tasks))
+    loop = get_event_loop()
+    loop.run_until_complete(gather(*tasks))
